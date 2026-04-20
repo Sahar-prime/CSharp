@@ -2,7 +2,7 @@
 using System.Linq;
 using System;
 
-#if Main 
+#if Main
 namespace _13._04
 {
     internal class Program
