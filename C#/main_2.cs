@@ -17,6 +17,110 @@ namespace _20._04
         }
         static void Main(string[] args)
         {
+            // SortedSet - двоичное дерево, хранящая только уникальные значения коллекции в отсортированном виде
+            {
+                // Коллекция уникальный значений в формате дерева
+                SortedSet<int> tree = new SortedSet<int>();
+                tree.Add(2);
+                tree.Add(3);
+                tree.Add(1);
+                tree.Add(2);
+                tree.Add(3);
+                tree.Add(2);
+                tree.Add(1);
+                tree.Add(2);
+                tree.Add(3);
+                tree.Add(3);
+                tree.Add(2);
+                tree.Add(1);
+                tree.Add(2);
+                tree.Add(3);
+                tree.Add(3);
+
+                foreach (int value in tree)
+                {
+                    Console.WriteLine(value);
+                }
+            }
+
+            {
+                // Коллекция уникальный значений в формате дерева
+                HashSet<int> tree = new HashSet<int>();
+                tree.Add(2);
+                tree.Add(3);
+                tree.Add(1);
+                tree.Add(2);
+                tree.Add(3);
+                tree.Add(2);
+                tree.Add(1);
+                tree.Add(2);
+                tree.Add(3);
+                tree.Add(3);
+                tree.Add(2);
+                tree.Add(1);
+                tree.Add(2);
+                tree.Add(3);
+                tree.Add(3);
+
+                foreach (int value in tree)
+                {
+                    Console.WriteLine(value);
+                }
+            }
+
+            // Queue - Очередь
+            // FIFO - First In First Out - первый зашел - первый вышел
+            {
+                Queue<int> queue = new Queue<int>();
+                queue.Enqueue(4); // Добавить элемент в конец очереди
+                queue.Dequeue(); // Удалить элемент из начала
+            }
+
+            // Stack - список, работающий только на двух операциях добавление и удаления элентов из начала
+            // LIFO - Last In - First Out - последний зашел - первый вышел
+            {
+                Stack<int> stack = new Stack<int>();
+
+                stack.Push(3); // Добавить элемент в начало
+                stack.Pop(); // удалить элемент из начала
+
+                Stack<List<int>> data = new Stack<List<int>>();
+                List<int> list = new List<int>(15);
+
+                Random random = new Random();
+                for (int i = 0; i < 15; ++i)
+                {
+                    list.Add(random.Next(0, 20));
+                }
+                list.Sort();
+                data.Push(list);
+
+                int targetValue = random.Next(0, 20);
+                while (data.Count != 0)
+                {
+                    List<int> target = data.Pop();
+
+                    if (target.Count > 0)
+                    {
+                        int middleIndex = target.Count / 2;
+                        int middle = target[middleIndex];
+                        if (targetValue < middle)
+                        {
+                            data.Push(target.GetRange(0, middleIndex));
+                        }
+                        else if (targetValue > middle)
+                        {
+                            data.Push(target.GetRange(middleIndex, middleIndex));
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Элемент {targetValue} на позиции {middleIndex}");
+                        }
+                    }
+
+                }
+            }
+
             // LinkedList - двусзясный список
             {
                 LinkedList<int> list = new LinkedList<int>();
@@ -71,9 +175,53 @@ namespace _20._04
 
                 // Добавить в массив не один элемент, а сразу все элементы другой коллекции
                 copy.AddRange(collection);
-
-                Console.ReadKey();
             }
+
+            /*
+            *  1. В массиве на 20 элементов, заполненым случаным образом, найти первый элемент, который больше минимального
+            *  2. В списке на 10, заполненым случаным образом, добавить после каждоый 3(тройки) одну 7(семерку)
+            *  
+            *  3. В массиве на 10 элементов, заполненым случаным образом, посчитать сумму уникальный значений
+            *      1 2 2 2 2 2 2 -> сумма = 3
+            */
+
+            Random rnd = new Random();
+            //1
+            int[] array = new int[20];
+            for (int i = 0; i < 20; i++) array[i] = rnd.Next(1, 100);
+            int min = array.Min();
+            int result = array.FirstOrDefault(x => x > min);
+
+            Console.WriteLine($"Минимум: {min}, Первый элемент больше минимума: {result}");
+
+            //2
+            LinkedList<int> linkedList = new LinkedList<int>();
+            for (int i = 0; i < 10; i++) linkedList.AddLast(rnd.Next(1, 10));
+
+            var currentNode = linkedList.First;
+            while (currentNode != null)
+            {
+                if (currentNode.Value == 3)
+                {
+                    linkedList.AddAfter(currentNode, 7);
+                    currentNode = currentNode.Next;
+                }
+                currentNode = currentNode.Next;
+            }
+
+            //3
+            int[] numbers = new int [10];
+            for (int i = 0; i < 10; i++) numbers[i] = rnd.Next(1, 100);
+            HashSet<int> uniqueValues = new HashSet<int>(numbers);
+
+            int sum = 0;
+            foreach (int value in uniqueValues)
+            {
+                sum += value;
+            }
+
+            Console.WriteLine($"Сумма уникальных: {sum}");
+
         }
     }
 }
