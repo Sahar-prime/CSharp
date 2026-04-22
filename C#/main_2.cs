@@ -9,20 +9,29 @@ namespace _20._04
 {
     internal class Program
     {
-
         static void GetInfo(List<int> collection)
         {
             Console.WriteLine($"Размер = {collection.Count}");
             Console.WriteLine($"Вместимость = {collection.Capacity}");
         }
+
         class Point
         {
             public int x, y;
-            public Point(int x, int y) 
+            public Point(int x, int y)
             {
                 this.x = x;
                 this.y = y;
             }
+
+            //public override bool Equals(object? obj)
+            //{
+            //    if (obj is Point point)
+            //    {
+            //        return this.x == point.x && this.y == point.y;
+            //    }
+            //    return false;
+            //}
         }
 
         // Функции группировки принимают элементы коллекции, а возвращают значение группы
@@ -36,8 +45,141 @@ namespace _20._04
             return Math.Sign(point.x);
         }
 
+        static double Distanse(Point target, Point _base)
+        {
+            return Math.Sqrt(
+                    Math.Pow(target.x - _base.x, 2) +
+                    Math.Pow(target.y - _base.y, 2)
+                );
+        }
+
+        static double Distanse(Point target)
+        {
+            return Distanse(target, new Point(0, 0));
+        }
+
+        /**
+         *  1. Создать словарь "телефонная книга"
+         *      Ключ - имя человека, значение - его номер телефона
+         *      1. Поменять номер телефона у пользователя
+         *      *2. Поменять имя контакта в словаре(менять ключ нельзя - удаляем старый контакт 
+         *          и на его места создаем новую запись)
+         * 
+         *  2. Вводим текст, посчитать сколько раз в тексте встречалось каждое слово
+         */
+        // 1. Телефонная книга
+        static void PhoneBookTask()
+        {
+            Dictionary<string, string> phoneBook = new Dictionary<string, string>
+        {
+            { "Иван", "+123" },
+            { "Мария", "+444" },
+            { "Алексей", "+555" }
+        };
+
+            Console.WriteLine("\n--- Телефонная книга ---");
+            foreach (var contact in phoneBook)
+            {
+                Console.WriteLine($"{contact.Key}: {contact.Value}");
+            }
+
+            // 1.1. Изменение номера телефона
+            Console.WriteLine("\nВведите имя для изменения номера:");
+            string nameToUpdate = Console.ReadLine();
+            if (phoneBook.ContainsKey(nameToUpdate))
+            {
+                Console.WriteLine($"Текущий номер: {phoneBook[nameToUpdate]}");
+                Console.WriteLine("Введите новый номер:");
+                phoneBook[nameToUpdate] = Console.ReadLine();
+                Console.WriteLine("Номер обновлен!");
+            }
+            else
+            {
+                Console.WriteLine("Контакт не найден.");
+            }
+
+            // 1.2. Изменение имени контакта
+            Console.WriteLine("\nВведите текущее имя контакта для изменения:");
+            string oldName = Console.ReadLine();
+            if (phoneBook.ContainsKey(oldName))
+            {
+                Console.WriteLine("Введите новое имя:");
+                string newName = Console.ReadLine();
+                string phoneNumber = phoneBook[oldName];
+                phoneBook.Remove(oldName);
+                phoneBook.Add(newName, phoneNumber);
+                Console.WriteLine("Имя контакта изменено!");
+            }
+            else
+            {
+                Console.WriteLine("Контакт не найден.");
+            }
+
+            Console.WriteLine("\nОбновленная телефонная книга:");
+            foreach (var contact in phoneBook)
+            {
+                Console.WriteLine($"{contact.Key}: {contact.Value}");
+            }
+        }
+
+        // 2. Подсчет слов в тексте
+        static void WordCountTask()
+        {
+            Console.WriteLine("\n--- Подсчет слов в тексте ---");
+            Console.WriteLine("Введите текст:");
+            string inputText = Console.ReadLine();
+
+            // Разбиваем текст на слова, игнорируя знаки препинания
+            var words = inputText.Split(new[] { ' ', '.', ',', '!', '?', ';', ':' }, StringSplitOptions.RemoveEmptyEntries);
+
+            // Группируем слова и считаем их количество
+            var wordCounts = words
+                .GroupBy(word => word.ToLower())
+                .ToDictionary(group => group.Key, group => group.Count());
+
+            Console.WriteLine("\nКоличество вхождений каждого слова:");
+            foreach (var pair in wordCounts)
+            {
+                Console.WriteLine($"{pair.Key}: {pair.Value}");
+            }
+        }
+
         static void Main(string[] args)
         {
+            PhoneBookTask();
+            WordCountTask();
+
+            {
+
+                string d = "333";
+                d.Split(' '); // "Hello world" -> ["Hello", "world"];
+                Point p1 = new Point(1, 1);
+                Point p2 = new Point(1, 1);
+
+                Dictionary<Point, double> points = new Dictionary<Point, double>();
+
+                while (true)
+                {
+                    int x, y;
+                    Console.WriteLine("Введите координаты точки:");
+                    Console.Write("X: ");
+                    x = int.Parse(Console.ReadLine());
+                    Console.Write("Y: ");
+                    y = int.Parse(Console.ReadLine());
+
+                    Point p = new Point(x, y);
+                    if (!points.ContainsKey(p))
+                    {
+                        points.Add(p, Distanse(p));
+                    }
+                    Console.WriteLine($"Расстояние от точки ({p.x}, {p.y}) = {points[p]}");
+
+                    if (x == 0 && y == 0) 
+                    {
+                        break;
+                    }
+                }
+            }
 
             {
                 Random rand = new Random();
@@ -46,15 +188,15 @@ namespace _20._04
                 for (int i = 0; i < 15; ++i)
                 {
                     points.Add(
-                        new Point(
-                                    rand.Next(-2, 2),
+                        new Point(rand.Next(-2, 2),
                                     rand.Next(-2, 2))
                     );
                 }
 
                 Dictionary<int, List<Point>> groupPointByX = points.GroupBy(GroupPointByX).ToDictionary(
                    (group) => group.Key,
-                   group => {
+                   group => 
+                   {
                        return group.Select(item => item).ToList();
                    }
                 );
@@ -69,11 +211,10 @@ namespace _20._04
             }
 
             {
-                Dictionary<int, string> translate = new Dictionary<int, string>
-                {
-                    {0, "ноль" },
-                    {1, "одинь" },
-                    {2, "два" }
+                Dictionary<int, string> translate = new Dictionary<int, string> {
+                    { 0, "ноль" },
+                    { 1, "один" },
+                    { 2, "два" },
                 };
 
                 /*
@@ -85,12 +226,12 @@ namespace _20._04
                 translate.Add(4, "четыре");
                 translate.Add(5, "пять");
 
-                while (true) 
+                while (true)
                 {
                     Console.Write("Введите цифру: ");
                     int change = int.Parse(Console.ReadLine());
 
-                    //ContainsKey - проверка на наличие ключа в словаре
+                    // ContainsKey - проверка на наличие ключа в словаре 
                     if (translate.ContainsKey(change))
                     {
                         Console.WriteLine($"{change} - {translate[change]}");
@@ -98,18 +239,21 @@ namespace _20._04
                     else
                     {
                         Console.WriteLine($"Нет перевода для '{change}'");
-                        Console.Write("Добавить Y/N: ");
+                        Console.Write("Добавить?(Y/N): ");
                         string changeAdd = Console.ReadLine();
                         if (changeAdd == "Y")
                         {
                             Console.Write("Укажите перевод: ");
                             string value = Console.ReadLine();
-                            //translate.Add(change, value);
+                            // translate.Add(change, value);
                             translate[change] = value;
                         }
                         else { break; }
                     }
                 }
+
+
+                Console.ReadKey();
             }
 
             // SortedSet - двоичное дерево, хранящая только уникальные значения коллекции в отсортированном виде
@@ -270,6 +414,8 @@ namespace _20._04
 
                 // Добавить в массив не один элемент, а сразу все элементы другой коллекции
                 copy.AddRange(collection);
+
+                Console.ReadKey();
             }
 
             /*
@@ -279,43 +425,44 @@ namespace _20._04
             *  3. В массиве на 10 элементов, заполненым случаным образом, посчитать сумму уникальный значений
             *      1 2 2 2 2 2 2 -> сумма = 3
             */
-
-            Random rnd = new Random();
-            //1
-            int[] array = new int[20];
-            for (int i = 0; i < 20; i++) array[i] = rnd.Next(1, 100);
-            int min = array.Min();
-            int result = array.FirstOrDefault(x => x > min);
-
-            Console.WriteLine($"Минимум: {min}, Первый элемент больше минимума: {result}");
-
-            //2
-            LinkedList<int> linkedList = new LinkedList<int>();
-            for (int i = 0; i < 10; i++) linkedList.AddLast(rnd.Next(1, 10));
-
-            var currentNode = linkedList.First;
-            while (currentNode != null)
             {
-                if (currentNode.Value == 3)
+                Random rnd = new Random();
+                //1
+                int[] array = new int[20];
+                for (int i = 0; i < 20; i++) array[i] = rnd.Next(1, 100);
+                int min = array.Min();
+                int result = array.FirstOrDefault(x => x > min);
+
+                Console.WriteLine($"Минимум: {min}, Первый элемент больше минимума: {result}");
+
+                //2
+                LinkedList<int> linkedList = new LinkedList<int>();
+                for (int i = 0; i < 10; i++) linkedList.AddLast(rnd.Next(1, 10));
+
+                var currentNode = linkedList.First;
+                while (currentNode != null)
                 {
-                    linkedList.AddAfter(currentNode, 7);
+                    if (currentNode.Value == 3)
+                    {
+                        linkedList.AddAfter(currentNode, 7);
+                        currentNode = currentNode.Next;
+                    }
                     currentNode = currentNode.Next;
                 }
-                currentNode = currentNode.Next;
+
+                //3
+                int[] numbers = new int[10];
+                for (int i = 0; i < 10; i++) numbers[i] = rnd.Next(1, 100);
+                HashSet<int> uniqueValues = new HashSet<int>(numbers);
+
+                int sum = 0;
+                foreach (int value in uniqueValues)
+                {
+                    sum += value;
+                }
+
+                Console.WriteLine($"Сумма уникальных: {sum}");
             }
-
-            //3
-            int[] numbers = new int [10];
-            for (int i = 0; i < 10; i++) numbers[i] = rnd.Next(1, 100);
-            HashSet<int> uniqueValues = new HashSet<int>(numbers);
-
-            int sum = 0;
-            foreach (int value in uniqueValues)
-            {
-                sum += value;
-            }
-
-            Console.WriteLine($"Сумма уникальных: {sum}");
 
         }
     }
