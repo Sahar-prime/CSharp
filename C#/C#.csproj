@@ -47,7 +47,7 @@
     <Compile Include="H_W_2.cs" />
     <Compile Include="main.cs" />
     <Compile Include="main_2.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="Data Types %28Basics%29.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

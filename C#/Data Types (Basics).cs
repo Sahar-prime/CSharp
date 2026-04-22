@@ -1,11 +1,12 @@
 ﻿//#define Main
+
 using System.Linq;
 using System;
 
 #if Main
 namespace _13._04
 {
-    internal class Program
+    internal class Introduction
     {
         static int Sqea(int x = 0) => x * x;
         /*

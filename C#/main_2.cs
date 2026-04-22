@@ -15,8 +15,103 @@ namespace _20._04
             Console.WriteLine($"Размер = {collection.Count}");
             Console.WriteLine($"Вместимость = {collection.Capacity}");
         }
+        class Point
+        {
+            public int x, y;
+            public Point(int x, int y) 
+            {
+                this.x = x;
+                this.y = y;
+            }
+        }
+
+        // Функции группировки принимают элементы коллекции, а возвращают значение группы
+        static int GroupPointByX(Point point)
+        {
+            return point.x;
+        }
+
+        static int GroupPointByAsinX(Point point)
+        {
+            return Math.Sign(point.x);
+        }
+
         static void Main(string[] args)
         {
+
+            {
+                Random rand = new Random();
+
+                List<Point> points = new List<Point>(15);
+                for (int i = 0; i < 15; ++i)
+                {
+                    points.Add(
+                        new Point(
+                                    rand.Next(-2, 2),
+                                    rand.Next(-2, 2))
+                    );
+                }
+
+                Dictionary<int, List<Point>> groupPointByX = points.GroupBy(GroupPointByX).ToDictionary(
+                   (group) => group.Key,
+                   group => {
+                       return group.Select(item => item).ToList();
+                   }
+                );
+
+                groupPointByX = points.GroupBy(GroupPointByAsinX).ToDictionary(
+                   (group) => group.Key,
+                   group => {
+                       return group.Select(item => item).ToList();
+                   }
+                );
+                Console.WriteLine(groupPointByX);
+            }
+
+            {
+                Dictionary<int, string> translate = new Dictionary<int, string>
+                {
+                    {0, "ноль" },
+                    {1, "одинь" },
+                    {2, "два" }
+                };
+
+                /*
+                List<KeyValuePair<int, string>> d = new List<KeyValuePair<int, string>>();
+                Dictionary<int, string> dd = new Dictionary<int, string>(d);
+                */
+
+                translate.Add(3, "три");
+                translate.Add(4, "четыре");
+                translate.Add(5, "пять");
+
+                while (true) 
+                {
+                    Console.Write("Введите цифру: ");
+                    int change = int.Parse(Console.ReadLine());
+
+                    //ContainsKey - проверка на наличие ключа в словаре
+                    if (translate.ContainsKey(change))
+                    {
+                        Console.WriteLine($"{change} - {translate[change]}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Нет перевода для '{change}'");
+                        Console.Write("Добавить Y/N: ");
+                        string changeAdd = Console.ReadLine();
+                        if (changeAdd == "Y")
+                        {
+                            Console.Write("Укажите перевод: ");
+                            string value = Console.ReadLine();
+                            //translate.Add(change, value);
+                            translate[change] = value;
+                        }
+                        else { break; }
+                    }
+                }
+            }
+
             // SortedSet - двоичное дерево, хранящая только уникальные значения коллекции в отсортированном виде
             {
                 // Коллекция уникальный значений в формате дерева
