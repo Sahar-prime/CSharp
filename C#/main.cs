@@ -1,6 +1,6 @@
-﻿//#define Main
+﻿//#define MAIN
 
-#if Main 
+#if MAIN
 namespace _15._04
 {
     // interface - описания возможностей класса
@@ -263,4 +263,4 @@ namespace _15._04
     }
 }
 
-#endif //Main
+#endif //MAIN

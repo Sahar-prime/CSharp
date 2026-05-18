@@ -1,6 +1,6 @@
-﻿//#define Main
+﻿//#define MAIN
 
-#if Main
+#if MAIN
 namespace _27._04
 {
     /*
@@ -215,4 +215,4 @@ namespace _27._04
         }
     } 
 }
-#endif //Main
+#endif //MAIN

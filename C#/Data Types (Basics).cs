@@ -1,6 +1,6 @@
-﻿//#define Main
+﻿//#define MAIN
 
-#if Main
+#if MAIN
 namespace _13._04
 {
     internal class Introduction
@@ -274,4 +274,4 @@ namespace _13._04
 
     }
 }
-#endif //Main
+#endif //MAIN

@@ -1,6 +1,6 @@
-﻿//#define Main
+﻿//#define MAIN
 
-#if Main
+#if MAIN
 namespace _20._04
 {
     internal class Program
@@ -463,4 +463,4 @@ namespace _20._04
         }
     }
 }
-#endif //Main
+#endif //MAIN
