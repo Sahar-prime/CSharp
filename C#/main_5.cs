@@ -51,6 +51,14 @@ namespace C_
         public string[] Skills;
     }
 
+    public class Student
+    {
+        public string Name { get; set; }
+        public string LastName { get; set; }
+        public string Number { get; set; }
+        public List<int> MathGrades { get; set; } = new List<int>();
+        public List<int> InfGrades { get; set; } = new List<int>();
+    }
 
     internal class main_5
     {
@@ -106,6 +114,132 @@ namespace C_
                     }
                 }
             }
+
+            {
+                Student student = GetStudent();
+                XmlSerializer xml = new XmlSerializer(typeof(Student));
+
+                using (FileStream fs = new FileStream("student.xml", FileMode.Create, FileAccess.Write))
+                {
+                    xml.Serialize(fs, student);
+                }
+            }
+
+            {
+                XmlSerializer x = new XmlSerializer(typeof(Point));
+
+                using (FileStream f = new FileStream("point.xml", FileMode.OpenOrCreate, FileAccess.Read)) 
+                {
+                    using (StreamReader sr = new StreamReader(f))
+                    {
+                        if (x.Deserialize(sr) is Point point) 
+                        {
+                            Console.WriteLine($"Точки из point.xml = ({point.x}, {point.y})");
+                        }
+                    }
+                }
+                Console.ReadKey();
+            }
+
+            CrudPoints();
+        }
+        static void CrudPoints()
+        {
+            const string FILE_PATH = "points.xml";
+
+            XmlSerializer pointsSerializer = new XmlSerializer(typeof(Point[]));
+
+            while (true)
+            {
+                Console.Clear();
+                Console.WriteLine("работа с точками");
+
+                Console.WriteLine("1. Просмотр");
+                Console.WriteLine("2. Добавление");
+                Console.WriteLine("3. Выйти");
+
+                int change = int.Parse(Console.ReadLine());
+                Console.Clear();
+                switch (change)
+                {
+                    case 1:
+                        {
+                            using (FileStream fs = new FileStream(FILE_PATH, FileMode.OpenOrCreate, FileAccess.Read))
+                            {
+                                using (StreamReader rs = new StreamReader(fs))
+                                {
+                                    if (rs.EndOfStream)
+                                    {
+                                        Console.WriteLine("Пустой список");
+                                    }
+                                    else if (pointsSerializer.Deserialize(rs) is Point[] points)
+                                    {
+                                        foreach (Point point in points)
+                                        {
+                                            Console.WriteLine($"({point.x}, {point.y})");
+                                        }
+                                    }
+                                }
+                            }
+                            break;
+                        }
+
+                    case 2:
+                        {
+                            int x, y;
+
+                            Console.Write("Введите координату X: ");
+                            x = int.Parse(Console.ReadLine());
+
+                            Console.Write("Введите координату Y: ");
+                            y = int.Parse(Console.ReadLine());
+
+                            Point point = new Point(x, y);
+
+                            Point[] points = [];
+                            using (FileStream fs = new FileStream(FILE_PATH, FileMode.OpenOrCreate, FileAccess.Read))
+                            {
+                                using (StreamReader rs = new StreamReader(fs))
+                                {
+                                    if (!rs.EndOfStream && pointsSerializer.Deserialize(rs) is Point[] temp)
+                                    {
+                                        points = temp as Point[];
+
+                                    }
+                                    points = points.Append(point).ToArray();
+                                }
+                            }
+
+                            using (FileStream fs = new FileStream(FILE_PATH, FileMode.OpenOrCreate, FileAccess.Write))
+                            {
+                                using (StreamWriter ws = new StreamWriter(fs))
+                                {
+                                    pointsSerializer.Serialize(ws, points);
+                                }
+                            }
+                            break;
+                        }
+
+                    case 3:
+                        return;
+
+                    default:
+                        Console.WriteLine("Некорректный ввод.");
+                        break;
+                }
+                Console.ReadKey();
+            }
+        }
+        static Student GetStudent()
+        {
+            return new Student
+            {
+                Name = "Сергей",
+                LastName = "Васильевич",
+                Number = "D321",
+                MathGrades = new List<int> { 4, 5, 3, 4, 4 },
+                InfGrades = new List<int> { 5, 5, 5, 5, 4 }
+            };
         }
         static Company GetCompany()
         {
