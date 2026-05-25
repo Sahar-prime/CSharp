@@ -5,14 +5,35 @@ using System.Xml.Serialization;
 
 namespace C_
 {
-    public class Point 
+    public class Point
     {
         public int x, y;
-        public Point(int x, int y) 
+        public Point(int x, int y)
         {
-            this.x = x; this.y = y;
+            this.x = x;
+            this.y = y;
         }
+
         public Point() { }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is Point other)
+            {
+                return x == other.x && y == other.y;
+            }
+            return false;
+        }
+
+        // ОБЯЗАТЕЛЬНО: Хэш-код должен быть одинаковым для точек с равными x и y
+        public override int GetHashCode()
+        {
+            // Метод HashCode.Combine доступен в .NET Core / .NET 5+
+            return HashCode.Combine(x, y);
+
+            // Если вы работаете в старом .NET Framework, используйте эту строку вместо верхней:
+            // return (x.GetHashCode() * 397) ^ y.GetHashCode();
+        }
     }
 
     public class Company
@@ -51,6 +72,11 @@ namespace C_
         public string[] Skills;
     }
 
+    public class GameState
+    {
+        public HashSet<Point> selfPosition = new HashSet<Point>(), enemyPosition = new HashSet<Point>();
+    }
+
     public class Student
     {
         public string Name { get; set; }
@@ -62,6 +88,153 @@ namespace C_
 
     internal class main_5
     {
+        static void StartOrContinueGame(GameState gameState)
+        {
+            Console.Clear();
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine("=== КРЕСТИКИ-НОЛИКИ ===");
+            Console.ResetColor();
+            Console.WriteLine();
+
+            while (true)
+            {
+                // Цикл по строкам (Y от 0 до 2)
+                for (int y = 0; y < 3; y++)
+                {
+                    Console.Write(" ");
+
+                    // Цикл по столбцам (X от 0 до 2)
+                    for (int x = 0; x < 3; x++)
+                    {
+                        Point currentPoint = new Point(x, y);
+
+                        // Отрисовка символа в зависимости от списков в GameState
+                        if (gameState.selfPosition.Contains(currentPoint))
+                        {
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.Write("X");
+                        }
+                        else if (gameState.enemyPosition.Contains(currentPoint))
+                        {
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            Console.Write("O");
+                        }
+                        else
+                        {
+                            Console.Write(" "); // Пустая клетка
+                        }
+                        Console.ResetColor();
+
+                        // Вертикальные разделители колонок
+                        if (x < 2)
+                        {
+                            Console.ForegroundColor = ConsoleColor.DarkGray;
+                            Console.Write(" │ ");
+                            Console.ResetColor();
+                        }
+                    }
+                    Console.WriteLine();
+
+                    // Горизонтальные разделители строк
+                    if (y < 2)
+                    {
+                        Console.ForegroundColor = ConsoleColor.DarkGray;
+                        Console.WriteLine("───┼───┼───");
+                        Console.ResetColor();
+                    }
+                }
+                Console.WriteLine();
+                Console.WriteLine("Ввиде координаты своей фигуры");
+
+                Console.Write("X: ");
+                int nx = int.Parse(Console.ReadLine());
+                Console.Write("Y: ");
+                int ny = int.Parse(Console.ReadLine());
+
+                gameState.selfPosition.Add(new Point(nx, ny));
+
+                Random random = new Random();
+                nx = random.Next(0, 3);
+                ny = random.Next(0, 3);
+
+                gameState.enemyPosition.Add(new Point(nx, ny));
+            }
+        }
+
+        static void StartOrContinueGame()
+        {
+            StartOrContinueGame(new GameState());
+        }
+
+        static GameState? GetGameSave()
+        {
+            DirectoryInfo saveDirectory = new DirectoryInfo("saves");
+            if (saveDirectory.Exists)
+            {
+                FileInfo[] savesFiles = saveDirectory.GetFiles();
+                if (savesFiles.Length != 0)
+                {
+                    for (int i = 0; i < savesFiles.Length; ++i)
+                    {
+                        Console.WriteLine($"{i + 1}.\t{savesFiles[i].Name}");
+                    }
+
+                    int change;
+
+                    do
+                    {
+                        change = int.Parse(Console.ReadLine());
+                    } while (0 <= change && change < savesFiles.Length);
+
+                    FileInfo changeSave = savesFiles[change];
+
+                    XmlSerializer xmlSerializer = new XmlSerializer(typeof(GameState));
+                    using (FileStream fs = changeSave.OpenRead())
+                    {
+                        using (StreamReader rs = new StreamReader(fs))
+                        {
+                            if (xmlSerializer.Deserialize(rs) is GameState state)
+                            {
+                                return state;
+                            }
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        static void Game()
+        {
+            while (true)
+            {
+                Console.Clear();
+                Console.WriteLine("1.\tНачать новую игру");
+                Console.WriteLine("2.\tПродолжить существующую");
+
+                Console.Write("Ваш выбор: ");
+                int change = int.Parse(Console.ReadLine());
+                Console.Clear();
+                switch (change)
+                {
+                    case 1:
+                        {
+                            StartOrContinueGame();
+                            break;
+                        }
+                    case 2:
+                        {
+                            GameState? state = GetGameSave();
+                            if (state != null)
+                            {
+                                StartOrContinueGame(state);
+                            }
+                            break;
+                        }
+                }
+            }
+        }
+
         static void Main()
         {
             {
@@ -142,6 +315,7 @@ namespace C_
             }
 
             CrudPoints();
+            Game();
         }
         static void CrudPoints()
         {
