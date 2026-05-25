@@ -5,6 +5,22 @@ using System.Xml.Serialization;
 
 namespace C_
 {
+    public enum GameResult
+    {
+        InProgress,
+        Win,
+        Lose,
+        Draw
+    }
+
+    public class Statistics
+    {
+        public int Wins { get; set; } = 0;
+        public int Losses { get; set; } = 0;
+        public int Draws { get; set; } = 0;
+        public int Unfinished { get; set; } = 0;
+    }
+
     public class Point
     {
         public int x, y;
@@ -72,11 +88,6 @@ namespace C_
         public string[] Skills;
     }
 
-    public class GameState
-    {
-        public HashSet<Point> selfPosition = new HashSet<Point>(), enemyPosition = new HashSet<Point>();
-    }
-
     public class Student
     {
         public string Name { get; set; }
@@ -86,9 +97,104 @@ namespace C_
         public List<int> InfGrades { get; set; } = new List<int>();
     }
 
+    public class GameState
+    {
+        public HashSet<Point> selfPosition = new HashSet<Point>();
+        public HashSet<Point> enemyPosition = new HashSet<Point>();
+    }
+
     internal class main_5
     {
-        static void StartOrContinueGame(GameState gameState)
+        private static readonly string STATS_FILE = "statistics.xml";
+
+        static bool CheckWin(HashSet<Point> positions)
+        {
+            Point[][] winCombinations = new Point[][]
+            {
+                new Point[] { new Point(0,0), new Point(1,0), new Point(2,0) },
+                new Point[] { new Point(0,1), new Point(1,1), new Point(2,1) },
+                new Point[] { new Point(0,2), new Point(1,2), new Point(2,2) },
+                new Point[] { new Point(0,0), new Point(0,1), new Point(0,2) },
+                new Point[] { new Point(1,0), new Point(1,1), new Point(1,2) },
+                new Point[] { new Point(2,0), new Point(2,1), new Point(2,2) },
+                new Point[] { new Point(0,0), new Point(1,1), new Point(2,2) },
+                new Point[] { new Point(2,0), new Point(1,1), new Point(0,2) }
+            };
+
+            foreach (var combination in winCombinations)
+            {
+                if (combination.All(p => positions.Contains(p)))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        static bool CheckDraw(GameState gameState)
+        {
+            return gameState.selfPosition.Count + gameState.enemyPosition.Count == 9;
+        }
+        static GameResult CheckGameState(GameState gameState)
+        {
+            if (CheckWin(gameState.selfPosition))
+                return GameResult.Win;
+            if (CheckWin(gameState.enemyPosition))
+                return GameResult.Lose;
+            if (CheckDraw(gameState))
+                return GameResult.Draw;
+            return GameResult.InProgress;
+        }
+        static Statistics LoadStatistics()
+        {
+            XmlSerializer serializer = new XmlSerializer(typeof(Statistics));
+            if (File.Exists(STATS_FILE))
+            {
+                using (FileStream fs = new FileStream(STATS_FILE, FileMode.Open, FileAccess.Read))
+                {
+                    return (Statistics)serializer.Deserialize(fs);
+                }
+            }
+            return new Statistics();
+        }
+        static void SaveStatistics(Statistics stats)
+        {
+            XmlSerializer serializer = new XmlSerializer(typeof(Statistics));
+            using (FileStream fs = new FileStream(STATS_FILE, FileMode.Create, FileAccess.Write))
+            {
+                serializer.Serialize(fs, stats);
+            }
+        }
+        static void UpdateStatistics(GameResult result)
+        {
+            Statistics stats = LoadStatistics();
+            switch (result)
+            {
+                case GameResult.Win:
+                    stats.Wins++;
+                    break;
+                case GameResult.Lose:
+                    stats.Losses++;
+                    break;
+                case GameResult.Draw:
+                    stats.Draws++;
+                    break;
+            }
+            SaveStatistics(stats);
+        }
+        static void ShowStatistics()
+        {
+            Statistics stats = LoadStatistics();
+            Console.Clear();
+            Console.WriteLine("=== СТАТИСТИКА ===");
+            Console.WriteLine($"Победы: {stats.Wins}");
+            Console.WriteLine($"Поражения: {stats.Losses}");
+            Console.WriteLine($"Ничьи: {stats.Draws}");
+            Console.WriteLine($"Незавершенные партии: {stats.Unfinished}");
+            Console.WriteLine("\nНажмите любую клавишу для возврата в меню...");
+            Console.ReadKey();
+        }
+
+        static GameResult StartOrContinueGame(GameState gameState)
         {
             Console.Clear();
             Console.ForegroundColor = ConsoleColor.Cyan;
@@ -98,17 +204,13 @@ namespace C_
 
             while (true)
             {
-                // Цикл по строкам (Y от 0 до 2)
+                // Отрисовка поля
                 for (int y = 0; y < 3; y++)
                 {
                     Console.Write(" ");
-
-                    // Цикл по столбцам (X от 0 до 2)
                     for (int x = 0; x < 3; x++)
                     {
                         Point currentPoint = new Point(x, y);
-
-                        // Отрисовка символа в зависимости от списков в GameState
                         if (gameState.selfPosition.Contains(currentPoint))
                         {
                             Console.ForegroundColor = ConsoleColor.Red;
@@ -121,11 +223,10 @@ namespace C_
                         }
                         else
                         {
-                            Console.Write(" "); // Пустая клетка
+                            Console.Write(" ");
                         }
                         Console.ResetColor();
 
-                        // Вертикальные разделители колонок
                         if (x < 2)
                         {
                             Console.ForegroundColor = ConsoleColor.DarkGray;
@@ -135,7 +236,6 @@ namespace C_
                     }
                     Console.WriteLine();
 
-                    // Горизонтальные разделители строк
                     if (y < 2)
                     {
                         Console.ForegroundColor = ConsoleColor.DarkGray;
@@ -144,18 +244,110 @@ namespace C_
                     }
                 }
                 Console.WriteLine();
-                Console.WriteLine("Ввиде координаты своей фигуры");
 
-                Console.Write("X: ");
-                int nx = int.Parse(Console.ReadLine());
-                Console.Write("Y: ");
-                int ny = int.Parse(Console.ReadLine());
+                // Проверка состояния игры
+                GameResult result = CheckGameState(gameState);
+                if (result != GameResult.InProgress)
+                {
+                    switch (result)
+                    {
+                        case GameResult.Win:
+                            Console.WriteLine("Вы выиграли!");
+                            break;
+                        case GameResult.Lose:
+                            Console.WriteLine("Вы проиграли!");
+                            break;
+                        case GameResult.Draw:
+                            Console.WriteLine("Ничья!");
+                            break;
+                    }
+                    UpdateStatistics(result);
+                    Console.WriteLine("Нажмите любую клавишу для возврата в меню...");
+                    Console.ReadKey();
+                    return result;
+                }
+
+                // Выход из игры
+                Console.Write("Хотите ли вы выйти из игры?(Y/N): ");
+                string input = Console.ReadLine()?.Trim().ToLower();
+                if (input == "y")
+                {
+                    Console.Write("Хотите ли вы сохранить игру?(Y/N): ");
+                    input = Console.ReadLine()?.Trim().ToLower();
+                    if (input == "y")
+                    {
+                        XmlSerializer xmlSerializer = new XmlSerializer(typeof(GameState));
+                        if (!Directory.Exists("saves"))
+                        {
+                            Directory.CreateDirectory("saves");
+                        }
+                        using (FileStream fs = new FileStream($"saves/{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.xml", FileMode.CreateNew, FileAccess.Write))
+                        {
+                            xmlSerializer.Serialize(fs, gameState);
+                        }
+                        Statistics stats = LoadStatistics();
+                        stats.Unfinished++;
+                        SaveStatistics(stats);
+                    }
+                    return GameResult.InProgress;
+                }
+
+                // Ход игрока
+                Console.WriteLine("Введите координаты своей фигуры:");
+                int nx, ny;
+
+                while (true)
+                {
+                    Console.Write("X (0-2): ");
+                    if (int.TryParse(Console.ReadLine(), out nx) && nx >= 0 && nx <= 2)
+                        break;
+                    Console.WriteLine("Некорректное значение. Введите число от 0 до 2.");
+                }
+
+                while (true)
+                {
+                    Console.Write("Y (0-2): ");
+                    if (int.TryParse(Console.ReadLine(), out ny) && ny >= 0 && ny <= 2)
+                    {
+                        Point newPoint = new Point(nx, ny);
+                        if (!gameState.selfPosition.Contains(newPoint) && !gameState.enemyPosition.Contains(newPoint))
+                            break;
+                        Console.WriteLine("Эта клетка уже занята. Попробуйте снова.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Некорректное значение. Введите число от 0 до 2.");
+                    }
+                }
 
                 gameState.selfPosition.Add(new Point(nx, ny));
 
+                // Проверка после хода игрока
+                result = CheckGameState(gameState);
+                if (result != GameResult.InProgress)
+                {
+                    switch (result)
+                    {
+                        case GameResult.Win:
+                            Console.WriteLine("Вы выиграли!");
+                            break;
+                        case GameResult.Draw:
+                            Console.WriteLine("Ничья!");
+                            break;
+                    }
+                    UpdateStatistics(result);
+                    Console.WriteLine("Нажмите любую клавишу для возврата в меню...");
+                    Console.ReadKey();
+                    return result;
+                }
+
+                // Ход врага
                 Random random = new Random();
-                nx = random.Next(0, 3);
-                ny = random.Next(0, 3);
+                do
+                {
+                    nx = random.Next(0, 3);
+                    ny = random.Next(0, 3);
+                } while (gameState.selfPosition.Contains(new Point(nx, ny)) || gameState.enemyPosition.Contains(new Point(nx, ny)));
 
                 gameState.enemyPosition.Add(new Point(nx, ny));
             }
@@ -174,33 +366,31 @@ namespace C_
                 FileInfo[] savesFiles = saveDirectory.GetFiles();
                 if (savesFiles.Length != 0)
                 {
-                    for (int i = 0; i < savesFiles.Length; ++i)
+                    Console.WriteLine("Доступные сохранения:");
+                    for (int i = 0; i < savesFiles.Length; i++)
                     {
-                        Console.WriteLine($"{i + 1}.\t{savesFiles[i].Name}");
+                        Console.WriteLine($"{i + 1}. \t{savesFiles[i].Name}");
                     }
 
-                    int change;
-
-                    do
+                    int choice;
+                    while (true)
                     {
-                        change = int.Parse(Console.ReadLine());
-                    } while (0 <= change && change < savesFiles.Length);
+                        Console.Write($"Выберите сохранение (1-{savesFiles.Length}): ");
+                        if (int.TryParse(Console.ReadLine(), out choice) && choice >= 1 && choice <= savesFiles.Length)
+                            break;
+                        Console.WriteLine("Некорректный ввод. Попробуйте снова.");
+                    }
 
-                    FileInfo changeSave = savesFiles[change];
-
+                    FileInfo selectedSave = savesFiles[choice - 1];
                     XmlSerializer xmlSerializer = new XmlSerializer(typeof(GameState));
-                    using (FileStream fs = changeSave.OpenRead())
+                    using (FileStream fs = selectedSave.OpenRead())
                     {
-                        using (StreamReader rs = new StreamReader(fs))
-                        {
-                            if (xmlSerializer.Deserialize(rs) is GameState state)
-                            {
-                                return state;
-                            }
-                        }
+                        return (GameState)xmlSerializer.Deserialize(fs);
                     }
                 }
             }
+            Console.WriteLine("Сохранения не найдены.");
+            Console.ReadKey();
             return null;
         }
 
@@ -209,28 +399,42 @@ namespace C_
             while (true)
             {
                 Console.Clear();
-                Console.WriteLine("1.\tНачать новую игру");
-                Console.WriteLine("2.\tПродолжить существующую");
+                Console.WriteLine("=== ГЛАВНОЕ МЕНЮ ===");
+                Console.WriteLine("1. \tНачать новую игру");
+                Console.WriteLine("2. \tПродолжить сохранённую игру");
+                Console.WriteLine("3. \tПросмотреть статистику");
+                Console.WriteLine("4. \tВыход");
 
-                Console.Write("Ваш выбор: ");
-                int change = int.Parse(Console.ReadLine());
-                Console.Clear();
-                switch (change)
+                Console.Write("\nВаш выбор: ");
+                if (int.TryParse(Console.ReadLine(), out int choice))
                 {
-                    case 1:
-                        {
+                    switch (choice)
+                    {
+                        case 1:
                             StartOrContinueGame();
                             break;
-                        }
-                    case 2:
-                        {
+                        case 2:
                             GameState? state = GetGameSave();
                             if (state != null)
                             {
                                 StartOrContinueGame(state);
                             }
                             break;
-                        }
+                        case 3:
+                            ShowStatistics();
+                            break;
+                        case 4:
+                            return;
+                        default:
+                            Console.WriteLine("Некорректный ввод. Попробуйте снова.");
+                            Console.ReadKey();
+                            break;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Некорректный ввод. Попробуйте снова.");
+                    Console.ReadKey();
                 }
             }
         }
