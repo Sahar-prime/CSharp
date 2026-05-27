@@ -200,7 +200,6 @@ namespace _15._04
 
     internal class Program
     {
-
         static void Temp(NameClass name)
         {
             name.x = 111;
