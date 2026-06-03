@@ -1,7 +1,7 @@
 ﻿//#define H_W_5
 
 #if H_W_5
-namespace BookListApp
+namespace C_
 {
     public class Book
     {

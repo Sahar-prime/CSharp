@@ -116,6 +116,11 @@ namespace _01._06
         public Point2D() { }
 
         public Point2D(Point2D other) : this(other.x, other.y) { }
+
+        public override string ToString()
+        {
+            return $"({x}, {y})";
+        }
     }
 
     class Point3D : Point2D
@@ -153,10 +158,104 @@ namespace _01._06
     {
         List<Point2D> points = new List<Point2D>();
 
+        public Poligon(List<Point2D> points)
+        {
+            this.points = new List<Point2D>(points);
+        }
+
         public Point2D this[int index]
         {
             get => new Point2D(points[index]);
             set => points[index] = new Point2D(value);
+        }
+
+        private static double Distance(Point2D a, Point2D b)
+        {
+            return Math.Sqrt(Math.Pow(b.x - a.x, 2) + Math.Pow(b.y - a.y, 2));
+        }
+
+        public double Perimeter()
+        {
+            if (points.Count < 2)
+                return 0; // Если точек меньше 2, периметр равен 0
+
+            double perimeter = 0;
+            for (int i = 0; i < points.Count; i++)
+            {
+                Point2D current = points[i];
+                Point2D next = points[(i + 1) % points.Count]; // Последняя точка соединяется с первой
+                perimeter += Distance(current, next);
+            }
+            return perimeter;
+        }
+
+        public static Poligon operator +(Poligon first, Poligon second)
+        {
+            List<Point2D> combinedPoints = new List<Point2D>(first.points);
+            combinedPoints.AddRange(second.points);
+            return new Poligon(combinedPoints);
+        }
+        public static Poligon operator *(Poligon poligon, int scalar)
+        {
+            List<Point2D> scaledPoints = new List<Point2D>();
+            foreach (var point in poligon.points)
+            {
+                scaledPoints.Add(new Point2D(point.x * scalar, point.y * scalar));
+            }
+            return new Poligon(scaledPoints);
+        }
+
+        public static bool operator ==(Poligon first, Poligon second)
+        {
+            if (ReferenceEquals(first, second))
+                return true;
+            if (first is null || second is null)
+                return false;
+            return Math.Abs(first.Perimeter() - second.Perimeter()) < double.Epsilon;
+        }
+        public static bool operator !=(Poligon first, Poligon second)
+        {
+            return !(first == second);
+        }
+
+        public static bool operator <(Poligon first, Poligon second)
+        {
+            if (first is null || second is null)
+                throw new ArgumentNullException("Poligon cannot be null for comparison.");
+            return first.Perimeter() < second.Perimeter();
+        }
+        public static bool operator >(Poligon first, Poligon second)
+        {
+            if (first is null || second is null)
+                throw new ArgumentNullException("Poligon cannot be null for comparison.");
+            return first.Perimeter() > second.Perimeter();
+        }
+
+        public static bool operator <=(Poligon first, Poligon second)
+        {
+            return first.Perimeter() <= second.Perimeter();
+        }
+        public static bool operator >=(Poligon first, Poligon second)
+        {
+            return first.Perimeter() >= second.Perimeter();
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is Poligon other)
+                return this == other;
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Perimeter().GetHashCode();
+        }
+
+        // Метод для вывода точек полигона (для удобства тестирования)
+        public override string ToString()
+        {
+            return string.Join(", ", points);
         }
     }
 
@@ -181,6 +280,24 @@ namespace _01._06
                 Point2D point2D = new Point2D(point3D);
                 Point3D copyPoint2D = new Point3D(point2D);
                 Point3D point3D1 = 3;
+
+                List<Point2D> points1 = new List<Point2D> { new Point2D(1, 2), new Point2D(3, 4) };
+                List<Point2D> points2 = new List<Point2D> { new Point2D(5, 6), new Point2D(7, 8) };
+
+                Poligon poligon1 = new Poligon(points1);
+                Poligon poligon2 = new Poligon(points2);
+
+                Poligon foldedPoligon = poligon1 + poligon2;
+                Console.WriteLine("Folded Poligon: " + foldedPoligon);
+
+                Poligon multipliedPoligon = poligon1 * 2;
+                Console.WriteLine("Multiplied Poligon: " + multipliedPoligon);
+
+                Console.WriteLine($"Полигон 1 == Полигон 2: {poligon1 == poligon2}");
+                Console.WriteLine($"Полигон 1 < Полигон 2: {poligon1 < poligon2}");
+                Console.WriteLine($"Полигон 1 > Полигон 2: {poligon1 > poligon2}");
+                Console.WriteLine();
+
             }
 
             {
