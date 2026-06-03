@@ -54,7 +54,7 @@ namespace _01._06
         static public Decimal operator /(int first, Decimal second)
             => new Decimal(first, 1) / second;
 
-        static public bool operator !=(Decimal first, Decimal second) 
+        static public bool operator !=(Decimal first, Decimal second)
             => !(first == second);
         static public bool operator ==(Decimal first, Decimal second)
             => first.Equals(second);
@@ -64,10 +64,32 @@ namespace _01._06
         static public bool operator <=(Decimal first, Decimal second)
             => !(first > second);
 
-        static public bool operator >=(Decimal first, Decimal second) 
+        static public bool operator >=(Decimal first, Decimal second)
             => first > second || first == second;
-        static public bool operator >(Decimal first, Decimal second) 
+        static public bool operator >(Decimal first, Decimal second)
             => first.up * second.down > second.up * first.down;
+
+        public enum Parts
+        {
+            NUMERATOR,  // 0
+            DENOMINATOR // 1
+        }
+
+        public int this[Parts index]
+        {
+            get => index == Parts.NUMERATOR ? up : (int)down;
+            set
+            {
+                if (index == Parts.NUMERATOR)
+                {
+                    up = value;
+                }
+                else
+                {
+                    down = (uint)value;
+                }
+            }
+        }
 
         public override bool Equals(object? obj)
         {
@@ -78,8 +100,69 @@ namespace _01._06
             return false;
         }
 
-        public override string ToString() 
+        public override string ToString()
             => $"{up} / {down}";
+    }
+
+    class Point2D
+    {
+        public int x, y;
+        public Point2D(int x, int y)
+        {
+            this.x = x;
+            this.y = y;
+        }
+
+        public Point2D() { }
+
+        public Point2D(Point2D other) : this(other.x, other.y) { }
+    }
+
+    class Point3D : Point2D
+    {
+        public int t;
+
+        public Point3D(int x, int y, int t) : base(x, y)
+        {
+            this.t = t;
+        }
+
+        public Point3D() : base() { }
+
+        public Point3D(Point3D other) : this(other.x, other.y, other.t) { }
+
+        public Point3D(Point2D other) : this(other.x, other.y, 0) { }
+
+        /**
+         *  implicit - оператор неявного преобразования 
+         *      public static implicit operator TARGET_TYPE(ORIGINAL_TYPE value)
+         *      
+         *      TARGET_TYPE target = value; // где тип данных переменной value = ORIGINAL_TYPE
+         *  explicit - оператор явного преобразования
+         *      public static explicit operator TARGET_TYPE(ORIGINAL_TYPE value)
+         *      
+         *      TARGET_TYPE target = (TARGET_TYPE)value; // где тип данных переменной value = ORIGINAL_TYPE
+         */
+        public static implicit operator Point3D(int x)
+        {
+            return new Point3D(x, 0, 0);
+        }
+    }
+
+    class Poligon
+    {
+        List<Point2D> points = new List<Point2D>();
+
+        public Point2D this[int index]
+        {
+            get => new Point2D(points[index]);
+            set => points[index] = new Point2D(value);
+        }
+    }
+
+    class PoligonArray : List<Point2D>
+    {
+
     }
 
     internal class Program
@@ -93,6 +176,13 @@ namespace _01._06
 
         static void Main(string[] args)
         {
+            {
+                Point3D point3D = new Point3D(1, 1, 1);
+                Point2D point2D = new Point2D(point3D);
+                Point3D copyPoint2D = new Point3D(point2D);
+                Point3D point3D1 = 3;
+            }
+
             {
                 List<Decimal> decimals = new List<Decimal>();
                 Random random = new Random();
@@ -145,6 +235,8 @@ namespace _01._06
                 Console.WriteLine($"5 * {first} = {5 * first}");
                 Console.WriteLine($"{first} : 2 = {first / 2}");
                 Console.WriteLine($"10 : {first} = {10 / first}");
+                Console.WriteLine();
+                Console.WriteLine($"{first[Decimal.Parts.NUMERATOR]} / {first[Decimal.Parts.DENOMINATOR]}");
             }
         }
     }
