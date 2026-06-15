@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="C#/C#.csproj" />
+  <Project Path="Game/Game.csproj" Id="d9c138a8-837a-48d5-ae30-d675a252a42c" />
   <Project Path="Loger/Loger.csproj" Id="ee6061cf-8dd6-4d99-8689-86aeb6287f5a" />
 </Solution>
