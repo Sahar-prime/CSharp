@@ -1,4 +1,7 @@
-﻿namespace Game
+﻿//#define MAIN
+
+#if MAIN
+namespace Game
 {
     abstract class Item
     {
@@ -102,3 +105,4 @@
         }
     }
 }
+#endif //MAIN
